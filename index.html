@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Roblox RichText Generator</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --panel: #2a2a3b;
+      --text: #f0f0f0;
+      --accent: #5c6bc0;
+      --accent-hover: #7986cb;
+      --border: #3a3a3a;
+      --stroke: #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(-45deg, #1e1e1e, #252539, #1e1e1e);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: var(--text);
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--accent);
+    }
+
+    .container {
+      max-width: 950px;
+      margin: auto;
+      background: var(--panel);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      background: #121212;
+      color: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    input[type="color"] {
+      padding: 2px;
+      height: 40px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .row > div {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .checkbox-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-toggle input[type="checkbox"] {
+      appearance: none;
+      width: 40px;
+      height: 20px;
+      background: #444;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .checkbox-toggle input[type="checkbox"]:checked {
+      background: var(--accent);
+    }
+
+    .checkbox-toggle input[type="checkbox"]::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      transition: 0.2s;
+    }
+
+    .checkbox-toggle input[type="checkbox"]:checked::before {
+      transform: translateX(20px);
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      padding: 12px 24px;
+      margin: 20px 10px 0 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    .output, .preview {
+      margin-top: 25px;
+      padding: 20px;
+      background: #111;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      overflow: auto;
+      white-space: pre-wrap;
+      position: relative;
+    }
+
+    .preview-text {
+      font-size: 24px;
+      line-height: 1.6;
+    }
+
+    .font-warning {
+      color: red;
+      font-size: 0.8em;
+    }
+
+    .svg-text {
+      font-family: 'Arimo', sans-serif;
+      text-anchor: start;
+      dominant-baseline: hanging;
+      white-space: pre;
+    }
+
+    .rich-stroke {
+      position: relative;
+      display: inline-block;
+    }
+
+    .rich-stroke[data-stroke]::before {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: -1;
+      color: transparent;
+      text-shadow:
+        1px 0 var(--stroke),
+        -1px 0 var(--stroke),
+        0 1px var(--stroke),
+        0 -1px var(--stroke),
+        1px 1px var(--stroke),
+        -1px -1px var(--stroke),
+        1px -1px var(--stroke),
+        -1px 1px var(--stroke);
+    }
+
+    #preview {
+    width: 100%;
+    max-height: 500px; 
+    overflow: auto;
+    padding: 0;
+    position: relative;
+    }
+
+
+    #svgPreview {
+    display: block;
+    width: fit-content;
+    height: fit-content;
+    min-width: 100%;
+    min-height: 100%;
+    }
+
+
+
+
+    
+  </style>
+</head>
+<body>
+  <h1>Roblox RichText Generator</h1>
+  <div class="container">
+    <div class="row">
+      <div>
+        <label>Text</label>
+        <textarea id="text" rows="2">The big brown fox jumps over the lazy dog.</textarea>
+      </div>
+      <div>
+        <label>Font</label>
+<select id="font">
+          <option value="Legacy">Legacy</option>
+          <option value="Arial">Arimo</option>
+          <option value="ArialBold">Arimo</option>
+          <option value="SourceSans">SourceSans</option>
+          <option value="SourceSansBold">SourceSansBold</option>
+          <option value="SourceSansLight">SourceSansLight</option>
+          <option value="SourceSansItalic">SourceSansItalic</option>
+          <option value="Bodoni">Bodoni</option>
+          <option value="Garamond">Garamond</option>
+          <option value="Cartoon">Cartoon</option>
+          <option value="Code">Code</option>
+          <option value="Highway">Highway</option>
+          <option value="SciFi">SciFi</option>
+          <option value="Arcade">Arcade</option>
+          <option value="Fantasy">Fantasy</Fantasy>
+          <option value="Antique">Antique</Antique>
+          <option value="SourceSansSemibold">SourceSansSemibold</SourceSansSemibold>
+          <option value="Gotham">Montserrat</option>
+          <option value="GothamMedium">Montserrat</GothamMedium>
+          <option value="GothamBold">Montserrat</GothamBold>
+          <option value="GothamBlack">Montserrat</GothamBlack>
+          <option value="AmaticSC">AmaticSC</AmaticSC>
+          <option value="Bangers">Bangers</Bangers>
+          <option value="Creepster">Creepster</Creepster>
+          <option value="DenkOne">DenkOne</DenkOne>
+          <option value="Fondamento">Fondamento</Fondamento>
+          <option value="FredokaOne">FredokaOne</FredokaOne>
+          <option value="GrenzeGotisch">GrenzeGotisch</GrenzeGotisch>
+          <option value="IndieFlower">IndieFlower</IndieFlower>
+          <option value="JosefinSans">JosefinSans</JosefinSans>
+          <option value="Jura">Jura</Jura>
+          <option value="Kalam">Kalam</Kalam>
+          <option value="LuckiestGuy">LuckiestGuy</LuckiestGuy>
+          <option value="Merriweather">Merriweather</Merriweather>
+          <option value="Michroma">Michroma</Michroma>
+          <option value="Nunito">Nunito</Nunito>
+          <option value="Oswald">Oswald</Oswald>
+          <option value="PatrickHand">PatrickHand</PatrickHand>
+          <option value="PermanentMarker">PermanentMarker</PermanentMarker>
+          <option value="Roboto">Roboto</Roboto>
+          <option value="RobotoCondensed">RobotoCondensed</RobotoCondensed>
+          <option value="RobotoMono">RobotoMono</RobotoMono>
+          <option value="Sarpanch">Sarpanch</Sarpanch>
+          <option value="SpecialElite">SpecialElite</SpecialElite>
+          <option value="TitilliumWeb">TitilliumWeb</TitilliumWeb>
+          <option value="Ubuntu">Ubuntu</Ubuntu>
+          <option value="BuilderSans">BuilderSans</BuilderSans>
+          <option value="BuilderSansMedium">BuilderSansMedium</BuilderSansMedium>
+          <option value="BuilderSansBold">BuilderSansBold</BuilderSansBold>
+          <option value="BuilderSansExtraBold">BuilderSansExtraBold</BuilderSansExtraBold>
+          <option value="Arimo">Arimo</Arimo>
+          <option value="ArimoBold">ArimoBold</ArimoBold>
+        </select>
+        <div id="fontWarning" class="font-warning"></div>
+      </div>
+      <div>
+        <label>Size</label>
+        <input type="number" id="size" value="24">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Color</label>
+        <input type="color" id="colorPicker">
+        <input type="text" id="color" value="#ffffff">
+      </div>
+      <div>
+        <label>Stroke Color</label>
+        <input type="color" id="strokeColorPicker">
+        <input type="text" id="strokeColor" value="#000000">
+      </div>
+      <div>
+        <label>Stroke Thickness</label>
+        <input type="number" id="thickness" value="2">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="checkbox-toggle">
+        <input type="checkbox" id="bold"><label for="bold">Bold</label>
+      </div>
+      <div class="checkbox-toggle">
+        <input type="checkbox" id="italic"><label for="italic">Italic</label>
+      </div>
+      <div class="checkbox-toggle">
+        <input type="checkbox" id="underline"><label for="underline">Underline</label>
+      </div>
+      <div class="checkbox-toggle">
+        <input type="checkbox" id="shortHex"><label for="shortHex">Use short hex</label>
+      </div>
+    </div>
+
+    <div>
+      <button onclick="generate()">Generate</button>
+      <button onclick="copyOutput()">Copy</button>
+    </div>
+
+    <h3>RichText Output</h3>
+    <textarea id="output" class="output" readonly></textarea>
+
+    <h3>RichText Render</h3>
+    <div id="richPreview" class="preview preview-text"></div>
+
+    <h3>SVG Preview</h3>
+    <div id="preview" class="preview">
+      <svg id="svgPreview" xmlns="http://www.w3.org/2000/svg">
+        <text id="svgText" class="svg-text"></text>
+      </svg>
+    </div>
+  </div>
+
+  <script>
+    function normalizeHex(hex, useShort) {
+      hex = hex.trim().replace("#", "").toLowerCase();
+      if (useShort && hex.length === 6 && hex[0] === hex[1] && hex[2] === hex[3] && hex[4] === hex[5]) {
+        return "#" + hex[0] + hex[2] + hex[4];
+      }
+      return "#" + hex;
+    }
+
+    function generate() {
+      const text = document.getElementById("text").value;
+      const font = document.getElementById("font").value;
+      const size = document.getElementById("size").value;
+      const useShortHex = document.getElementById("shortHex").checked;
+      const color = normalizeHex(document.getElementById("color").value, useShortHex);
+      const strokeColor = normalizeHex(document.getElementById("strokeColor").value, useShortHex);
+      const thickness = parseInt(document.getElementById("thickness").value);
+      const bold = document.getElementById("bold").checked;
+      const italic = document.getElementById("italic").checked;
+      const underline = document.getElementById("underline").checked;
+
+      let processedText = text.replace(/\n|(<br\s*\/?>)/gi, "<br>");
+      let inner = `<font color="${color}">${processedText}</font>`;
+      if (underline) inner = `<u>${inner}</u>`;
+      if (italic) inner = `<i>${inner}</i>`;
+      if (bold) inner = `<b>${inner}</b>`;
+      if (strokeColor && thickness > 0) {
+        inner = `<stroke color="${strokeColor}" thickness="${thickness}">${inner}</stroke>`;
+      }
+
+      const result = `<font face="${font}" size="${size}">${inner}</font>`;
+      document.getElementById("output").value = result;
+
+      const richPreview = document.getElementById("richPreview");
+      const styledText = `<span class="rich-stroke" data-text="${text}" data-stroke="${strokeColor}" style="--stroke: ${strokeColor}; font-family: '${font}', sans-serif; font-size: ${size}px; color: ${color}; font-weight: ${bold ? 'bold' : 'normal'}; font-style: ${italic ? 'italic' : 'normal'};">${processedText}</span>`;
+      richPreview.innerHTML = underline ? `<u>${styledText}</u>` : styledText;
+
+      // SVG Text + Measurement
+      const svgText = document.getElementById("svgText");
+      const svg = document.getElementById("svgPreview");
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.font = `${bold ? "bold " : ""}${italic ? "italic " : ""}${size}px '${font}'`;
+
+      const textLines = text.split("<br>");
+      const lineHeight = parseInt(size) * 1.5;
+      const maxWidth = Math.max(...textLines.map(line => ctx.measureText(line).width));
+      const totalHeight = lineHeight * textLines.length;
+
+      svgText.textContent = textLines.join("\n");
+      svgText.setAttribute("x", 0);
+      svgText.setAttribute("y", parseInt(size));
+      svgText.setAttribute("font-size", size);
+      svgText.style.fill = color;
+      svgText.style.fontFamily = `'${font}', sans-serif`;
+      svgText.style.fontWeight = bold ? "bold" : "normal";
+      svgText.style.fontStyle = italic ? "italic" : "normal";
+
+      if (strokeColor && thickness > 0) {
+        svgText.setAttribute("stroke", strokeColor);
+        svgText.setAttribute("stroke-width", thickness);
+        svgText.setAttribute("paint-order", "stroke");
+        svgText.setAttribute("stroke-linejoin", "round");
+        svgText.setAttribute("stroke-linecap", "round");
+      } else {
+        svgText.removeAttribute("stroke");
+        svgText.removeAttribute("stroke-width");
+        svgText.removeAttribute("paint-order");
+        svgText.removeAttribute("stroke-linejoin");
+        svgText.removeAttribute("stroke-linecap");
+      }
+
+      svg.setAttribute("width", maxWidth + 100);
+      svg.setAttribute("height", totalHeight + 100);
+      svg.setAttribute("viewBox", `0 0 ${maxWidth + 100} ${totalHeight + 100}`);
+    }
+
+    function copyOutput() {
+      const out = document.getElementById("output");
+      out.select();
+      document.execCommand("copy");
+      alert("Copied");
+    }
+
+    window.onload = () => {
+      document.getElementById("colorPicker").addEventListener("input", () => {
+        document.getElementById("color").value = document.getElementById("colorPicker").value;
+      });
+      document.getElementById("strokeColorPicker").addEventListener("input", () => {
+        document.getElementById("strokeColor").value = document.getElementById("strokeColorPicker").value;
+      });
+      document.getElementById("font").addEventListener("change", generate);
+      generate();
+    }
+  </script>
+</body>
+</html>
